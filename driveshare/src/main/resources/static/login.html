@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DriveShare — Sign In</title>
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="auth-page">
+
+    <div class="auth-card">
+
+        <!-- ===== TABS ===== -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Log In</button>
+            <button class="auth-tab" id="tabRegister" onclick="switchTab('register')">Create Account</button>
+            <button class="auth-tab" id="tabForgot" onclick="switchTab('forgot')" style="display:none;">Reset Password</button>
+        </div>
+
+        <!-- ===== LOGIN FORM ===== -->
+        <div class="auth-body" id="loginPanel">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required />
+                </div>
+                <div class="forgot-link">
+                    <a href="#" onclick="switchTab('forgot'); return false;">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn btn-primary">Sign In</button>
+            </form>
+        </div>
+
+        <!-- ===== REGISTER FORM ===== -->
+        <div class="auth-body" id="registerPanel" style="display:none;">
+                    <div id="registerForm">
+                <form id="regForm">
+                    <div class="form-group">
+                        <label for="username">Full Name</label>
+                        <input type="text" id="username" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" required />
+                    </div>
+
+                    <div class="section-divider">Security Questions</div>
+
+                    <div class="security-section">
+                        <div class="sec-title">Required for account recovery</div>
+                        <div class="form-group">
+                            <label for="sec1">What was the name of your first pet?</label>
+                            <input type="text" id="sec1" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="sec2">What is your mother's maiden name?</label>
+                            <input type="text" id="sec2" required />
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="sec3">What city were you born in?</label>
+                            <input type="text" id="sec3" required />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== FORGOT PASSWORD PANEL ===== -->
+        <div class="auth-body" id="forgotPanel" style="display:none;">
+            <button class="back-link" onclick="switchTab('login')">Back to Login</button>
+            <h2>Reset Password</h2>
+            <p class="subtitle">Answer your security questions to verify your identity</p>
+
+            <form id="forgotForm">
+                <div class="form-group">
+                    <label for="resetEmail">Email Address</label>
+                    <input type="email" id="resetEmail" required />
+                </div>
+
+                <div class="security-section">
+                    <div class="sec-title">Security Verification</div>
+                    <div class="form-group">
+                        <label for="a1">What was the name of your first pet?</label>
+                        <input type="text" id="a1" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="a2">What is your mother's maiden name?</label>
+                        <input type="text" id="a2" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="a3">What city were you born in?</label>
+                        <input type="text" id="a3" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="newPass">New Password</label>
+                    <input type="password" id="newPass" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Reset Password</button>
+            </form>
+        </div>
+
+    </div><!-- /.auth-card -->
+
+    <script src="js/app.js"></script>
+    <script>
+        // ---- Tab switching ----
+        function switchTab(tab) {
+            ['loginPanel','registerPanel','forgotPanel'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            ['tabLogin','tabRegister','tabForgot'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+
+            if (tab === 'login') {
+                document.getElementById('loginPanel').style.display = 'block';
+                document.getElementById('tabLogin').classList.add('active');
+            } else if (tab === 'register') {
+                document.getElementById('registerPanel').style.display = 'block';
+                document.getElementById('tabRegister').classList.add('active');
+            } else if (tab === 'forgot') {
+                document.getElementById('forgotPanel').style.display = 'block';
+                document.getElementById('tabForgot').style.display = '';
+                document.getElementById('tabForgot').classList.add('active');
+            }
+        }
+
+        // Auto-switch to register tab if URL has #register
+        if (window.location.hash === '#register') {
+            switchTab('register');
+        }
+
+        // ---- Toast helper ----
+        function showToast(msg, type) {
+            let t = document.getElementById('globalToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'globalToast';
+                t.className = 'toast';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.className = 'toast ' + (type || '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3200);
+        }
+
+        // ---- Login ----
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    sessionStorage.setItem('dsToken',  data.token);
+                    sessionStorage.setItem('dsUserId', data.userId);
+                    sessionStorage.setItem('dsUsername', data.username || '');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showToast('Invalid email or password. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error. Please check the server.', 'error');
+            }
+        });
+
+        // ---- Register ----
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const securityAnswer1 = document.getElementById('sec1').value;
+            const securityAnswer2 = document.getElementById('sec2').value;
+            const securityAnswer3 = document.getElementById('sec3').value;
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, email, password, securityAnswer1, securityAnswer2, securityAnswer3})
+                });
+                if (res.ok) {
+                    showToast('Account created! Please log in.', 'success');
+                    setTimeout(() => switchTab('login'), 1500);
+                } else {
+                    showToast('Registration failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error. Please check the server.', 'error');
+            }
+        });
+
+        // ---- Forgot Password ----
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email    = document.getElementById('resetEmail').value;
+            const answers  = [
+                document.getElementById('a1').value,
+                document.getElementById('a2').value,
+                document.getElementById('a3').value
+            ];
+            const newPassword = document.getElementById('newPass').value;
+            try {
+                const res = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, answers, newPassword})
+                });
+                const msg = await res.text();
+                if (res.ok) {
+                    showToast('Password reset successful! Please log in.', 'success');
+                    setTimeout(() => switchTab('login'), 1800);
+                } else {
+                    showToast(msg || 'Reset failed. Check your answers.', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error. Please check the server.', 'error');
+            }
+        });
+
+        // ---- Legacy helper kept for backward compatibility ----
+        function showRegister() { switchTab('register'); }
+    </script>
+</body>
+</html>
